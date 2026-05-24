@@ -29,70 +29,32 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  // Refresh session
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
 
-  // Public routes
-  const publicRoutes = ['/login', '/']
-  const isPublicRoute = publicRoutes.includes(pathname)
+  // Allow login page always
+  if (pathname === '/login') {
+    return supabaseResponse
+  }
 
-  // If not logged in and trying to access protected route
-  if (!user && !isPublicRoute) {
+  // If not logged in and accessing protected route, go to login
+  if (!user && pathname !== '/login') {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // If logged in and trying to access login page
-  if (user && (pathname === '/login' || pathname === '/')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single()
-
+  // If on root, redirect to login (login page will handle redirect if already logged in)
+  if (pathname === '/') {
     const url = request.nextUrl.clone()
-    if (profile?.role === 'admin') {
-      url.pathname = '/admin/dashboard'
-    } else if (profile?.role === 'petugas') {
-      url.pathname = '/petugas/dashboard'
-    } else {
-      url.pathname = '/anggota/dashboard'
-    }
+    url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Role-based route protection
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single()
-
-    const role = profile?.role
-
-    if (pathname.startsWith('/admin') && role !== 'admin') {
-      const url = request.nextUrl.clone()
-      url.pathname = role === 'petugas' ? '/petugas/dashboard' : '/anggota/dashboard'
-      return NextResponse.redirect(url)
-    }
-
-    if (pathname.startsWith('/petugas') && role !== 'petugas' && role !== 'admin') {
-      const url = request.nextUrl.clone()
-      url.pathname = role === 'admin' ? '/admin/dashboard' : '/anggota/dashboard'
-      return NextResponse.redirect(url)
-    }
-
-    if (pathname.startsWith('/anggota') && role !== 'anggota') {
-      const url = request.nextUrl.clone()
-      url.pathname = role === 'admin' ? '/admin/dashboard' : '/petugas/dashboard'
-      return NextResponse.redirect(url)
-    }
-  }
-
+  // All other routes: user is logged in, let them through
   return supabaseResponse
 }

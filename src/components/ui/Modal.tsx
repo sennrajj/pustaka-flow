@@ -23,6 +23,14 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
     }
   }, [isOpen])
 
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    if (isOpen) window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
 
   const sizes = {
@@ -33,20 +41,20 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative bg-white rounded-xl shadow-xl w-full ${sizes[size]} mx-4 max-h-[90vh] overflow-y-auto`}>
-        <div className="flex items-center justify-between p-4 border-b">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[90vh] overflow-y-auto animate-scale-in`}>
+        <div className="sticky top-0 flex items-center justify-between p-5 border-b border-gray-100 bg-white/90 backdrop-blur-sm rounded-t-2xl z-10">
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
             aria-label="Tutup modal"
           >
-            <HiX className="w-5 h-5 text-gray-500" />
+            <HiX className="w-5 h-5 text-gray-400" />
           </button>
         </div>
-        <div className="p-4">{children}</div>
+        <div className="p-5">{children}</div>
       </div>
     </div>
   )

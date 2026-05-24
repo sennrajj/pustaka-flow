@@ -130,20 +130,24 @@ export default function AnggotaPage() {
 
         const kode = await generateKodeAnggota()
 
-        // Sign up user via Supabase Auth
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: form.email,
-          password: form.password,
-          options: {
-            data: { nama: form.nama, role: 'anggota' },
-          },
+        // Create user via API route (doesn't affect current session)
+        const res = await fetch('/api/auth/create-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+            nama: form.nama,
+            role: 'anggota',
+          }),
         })
 
-        if (authError) throw authError
+        const result = await res.json()
+        if (!res.ok) throw new Error(result.error)
 
         // Insert anggota record
         const { error } = await supabase.from('anggota').insert({
-          user_id: authData.user?.id,
+          user_id: result.user?.id,
           kode_anggota: kode,
           nama: form.nama,
           email: form.email,

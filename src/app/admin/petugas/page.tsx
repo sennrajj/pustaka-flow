@@ -126,15 +126,23 @@ export default function PetugasPage() {
 
         const kode = await generateKodePetugas()
 
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: form.email,
-          password: form.password,
-          options: { data: { nama: form.nama, role: 'petugas' } },
+        // Create user via API route (doesn't affect current session)
+        const res = await fetch('/api/auth/create-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+            nama: form.nama,
+            role: 'petugas',
+          }),
         })
-        if (authError) throw authError
+
+        const result = await res.json()
+        if (!res.ok) throw new Error(result.error)
 
         const { error } = await supabase.from('petugas').insert({
-          user_id: authData.user?.id,
+          user_id: result.user?.id,
           kode_petugas: kode,
           nama: form.nama,
           email: form.email,

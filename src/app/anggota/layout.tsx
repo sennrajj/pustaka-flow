@@ -14,7 +14,10 @@ export default async function AnggotaLayout({ children }: { children: React.Reac
     .eq('user_id', user.id)
     .single()
 
-  if (!profile || profile.role !== 'anggota') redirect('/login')
+  if (!profile) {
+    await supabase.auth.signOut()
+    redirect('/login')
+  }
 
   return <DashboardLayout profile={profile}>{children}</DashboardLayout>
 }

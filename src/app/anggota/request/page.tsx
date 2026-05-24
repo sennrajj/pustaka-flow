@@ -105,9 +105,9 @@ export default function RequestPage() {
                     </div>
                     <div className="mt-2 text-xs text-gray-400">
                       Diajukan: {formatDateShort(item.tanggal_request as string)}
-                      {item.tanggal_diproses && (
+                      {item.tanggal_diproses ? (
                         <span className="ml-3">Diproses: {formatDateShort(item.tanggal_diproses as string)}</span>
-                      )}
+                      ) : null}
                     </div>
                     {item.catatan_admin && (
                       <div className="mt-2 p-2 bg-gray-50 rounded-lg">
